@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Literal
 
+from django.http import Http404
+
 from booking.models import Room
 
 SortBy = Literal["price", "created_at"]
@@ -25,3 +27,11 @@ def list_rooms(*, sort_by: SortBy = "created_at", order: Order = "desc") -> list
         ordering = f"-{field}"
 
     return list(Room.objects.all().order_by(ordering))
+
+
+def delete_room(*, room_id: int) -> None:
+    try:
+        room = Room.objects.get(id=room_id)
+    except Room.DoesNotExist as exc:
+        raise Http404("room not found") from exc
+    room.delete()

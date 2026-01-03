@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from booking.services.rooms import create_room, list_rooms
+from booking.services.rooms import create_room, delete_room, list_rooms
 
 
 def _error(message: str, http_status: int) -> Response:
@@ -54,3 +55,19 @@ def rooms_list(request):
         for r in rooms
     ]
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def rooms_delete(request):
+    room_id = request.data.get("room_id")
+    try:
+        room_id_int = int(room_id)
+    except (TypeError, ValueError):
+        return _error("room_id must be integer", status.HTTP_400_BAD_REQUEST)
+
+    try:
+        delete_room(room_id=room_id_int)
+    except Http404:
+        return _error("room not found", status.HTTP_404_NOT_FOUND)
+
+    return Response({"status": "ok"}, status=status.HTTP_200_OK)
