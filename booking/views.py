@@ -1,15 +1,31 @@
 from __future__ import annotations
 
+from datetime import date
+
 from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from booking.services.bookings import create_booking, list_bookings
 from booking.services.rooms import create_room, delete_room, list_rooms
 
 
 def _error(message: str, http_status: int) -> Response:
     return Response({"error": message}, status=http_status)
+
+
+def _parse_date(value: object, field_name: str) -> tuple[date | None, Response | None]:
+    if not isinstance(value, str):
+        return None, _error(
+            f"{field_name} must be a string in YYYY-MM-DD format", status.HTTP_400_BAD_REQUEST
+        )
+    try:
+        return date.fromisoformat(value), None
+    except ValueError:
+        return None, _error(
+            f"{field_name} must be a string in YYYY-MM-DD format", status.HTTP_400_BAD_REQUEST
+        )
 
 
 @api_view(["POST"])
@@ -71,3 +87,58 @@ def rooms_delete(request):
         return _error("room not found", status.HTTP_404_NOT_FOUND)
 
     return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def bookings_create(request):
+    room_id = request.data.get("room_id")
+    date_start_raw = request.data.get("date_start")
+    date_end_raw = request.data.get("date_end")
+
+    try:
+        room_id_int = int(room_id)
+    except (TypeError, ValueError):
+        return _error("room id must be an integer", status.HTTP_400_BAD_REQUEST)
+
+    date_start, err = _parse_date(date_start_raw, "date_start")
+    if err:
+        return err
+
+    date_end, err = _parse_date(date_end_raw, "date_end")
+    if err:
+        return err
+
+    if date_end <= date_start:
+        return _error("date_end must be greater than date_start", status.HTTP_400_BAD_REQUEST)
+
+    try:
+        booking_id = create_booking(room_id=room_id_int, date_start=date_start, date_end=date_end)
+    except Http404:
+        return _error("room not found", status.HTTP_404_NOT_FOUND)
+
+    return Response({"booking_id": booking_id}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def bookings_list(request):
+    room_id = request.query_params.get("room_id")
+
+    try:
+        room_id_int = int(room_id)
+    except (TypeError, ValueError):
+        return _error("room id must be an integer", status.HTTP_400_BAD_REQUEST)
+
+    try:
+        bookings = list_bookings(room_id=room_id_int)
+    except Http404:
+        return _error("room not found", status.HTTP_404_NOT_FOUND)
+
+    data = [
+        {
+            "booking_id": b.id,
+            "date_start": b.date_start.isoformat(),
+            "date_end": b.date_end.isoformat(),
+        }
+        for b in bookings
+    ]
+    return Response(data, status=status.HTTP_200_OK)
