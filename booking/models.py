@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Room(models.Model):
     description = models.TextField()
     price_per_night = models.PositiveIntegerField()
@@ -7,7 +8,7 @@ class Room(models.Model):
 
     def __str__(self) -> str:
         return f"Room #{self.id}"
-    
+
 
 class Booking(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="bookings")
@@ -20,4 +21,3 @@ class Booking(models.Model):
 
     def __str__(self) -> str:
         return f"Booking #{self.id} (room {self.room_id})"
-
