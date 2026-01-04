@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from booking.services.bookings import create_booking, list_bookings
+from booking.services.bookings import create_booking, delete_booking, list_bookings
 from booking.services.rooms import create_room, delete_room, list_rooms
 
 
@@ -142,3 +142,19 @@ def bookings_list(request):
         for b in bookings
     ]
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def booking_delete(request):
+    booking_id = request.data.get("booking_id")
+    try:
+        booking_id_int = int(booking_id)
+    except (TypeError, ValueError):
+        return _error("booking_id must be an integer", status.HTTP_400_BAD_REQUEST)
+
+    try:
+        delete_booking(booking_id=booking_id_int)
+    except Http404:
+        return _error("booking not found", status.HTTP_404_NOT_FOUND)
+
+    return Response({"status": "ok"}, status=status.HTTP_200_OK)
