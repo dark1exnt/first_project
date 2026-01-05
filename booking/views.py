@@ -115,6 +115,8 @@ def bookings_create(request):
         booking_id = create_booking(room_id=room_id_int, date_start=date_start, date_end=date_end)
     except Http404:
         return _error("room not found", status.HTTP_404_NOT_FOUND)
+    except ValueError:
+        return _error("room is not available for selected dates", status.HTTP_400_BAD_REQUEST)
 
     return Response({"booking_id": booking_id}, status=status.HTTP_200_OK)
 

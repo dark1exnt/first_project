@@ -13,6 +13,12 @@ def create_booking(*, room_id: int, date_start: date, date_end: date) -> int:
     except Room.DoesNotExist as exc:
         raise Http404("room not found") from exc
 
+    overlap_exists = Booking.objects.filter(
+        room_id=room_id, date_start__lt=date_end, date_end__gt=date_start
+    ).exists()
+    if overlap_exists:
+        raise ValueError("room is not available for selected dates")
+
     booking = Booking.objects.create(room=room, date_start=date_start, date_end=date_end)
     return booking.id
 
