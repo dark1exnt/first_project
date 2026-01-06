@@ -1,6 +1,5 @@
 # first_project
 
-Первый проект.
 
 
 ## Stack
@@ -20,9 +19,13 @@ poetry run python manage.py runserver 0.0.0.0:9000
 ```
 
 ## API methods
-```POST /rooms/create```
-```GET /rooms/list?sort_by=price|created_at&order=asc|desc```
-```POST /rooms/delete```
-```POST /bookings/create```
-```GET /bookings/list?room_id=...```
-```POST /bookings/delete```
+
+### Rooms
+`POST /rooms/create`
+`GET /rooms/list?sort_by=price|created_at&order=asc|desc`
+`POST /rooms/delete`
+
+### Bookings
+`POST /bookings/create`
+`GET /bookings/list?room_id=...`
+`POST /bookings/delete`
