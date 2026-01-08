@@ -7,7 +7,7 @@ from django.http import Http404
 from booking.models import Room
 
 SortBy = Literal["price", "created_at"]
-Order = Literal["asс", "desc"]
+Order = Literal["asc", "desc"]
 
 
 def create_room(*, description: str, price_per_night: int) -> int:
