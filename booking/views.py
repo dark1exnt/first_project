@@ -28,8 +28,7 @@ def _parse_date(value: object, field_name: str) -> tuple[date | None, Response |
         )
 
 
-@api_view(["POST"])
-def rooms_create(request):
+def _rooms_create(request):
     description = request.data.get("description")
     price_per_night = request.data.get("price_per_night")
 
@@ -45,11 +44,10 @@ def rooms_create(request):
         return _error("price_per_night must be > 0", status.HTTP_400_BAD_REQUEST)
 
     room_id = create_room(description=description.strip(), price_per_night=price_per_night_int)
-    return Response({"room_id": room_id}, status=status.HTTP_200_OK)
+    return Response({"room_id": room_id}, status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET"])
-def rooms_list(request):
+def _rooms_list(request):
     sort_by = request.query_params.get("sort_by", "created_at")
     order = request.query_params.get("order", "desc")
 
@@ -73,16 +71,19 @@ def rooms_list(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
-def rooms_delete(request):
-    room_id = request.data.get("room_id")
-    try:
-        room_id_int = int(room_id)
-    except (TypeError, ValueError):
-        return _error("room_id must be integer", status.HTTP_400_BAD_REQUEST)
+@api_view(["GET", "POST"])
+def rooms(request):
+    if request.method == "GET":
+        return _rooms_list(request)
 
+    if request.method == "POST":
+        return _rooms_create(request)
+
+
+@api_view(["DELETE"])
+def rooms_delete(request, room_id: int):
     try:
-        delete_room(room_id=room_id_int)
+        delete_room(room_id=room_id)
     except Http404:
         return _error("room not found", status.HTTP_404_NOT_FOUND)
 
