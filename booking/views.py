@@ -71,27 +71,7 @@ def _rooms_list(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
-@api_view(["GET", "POST"])
-def rooms(request):
-    if request.method == "GET":
-        return _rooms_list(request)
-
-    if request.method == "POST":
-        return _rooms_create(request)
-
-
-@api_view(["DELETE"])
-def rooms_delete(request, room_id: int):
-    try:
-        delete_room(room_id=room_id)
-    except Http404:
-        return _error("room not found", status.HTTP_404_NOT_FOUND)
-
-    return Response({"status": "ok"}, status=status.HTTP_200_OK)
-
-
-@api_view(["POST"])
-def bookings_create(request):
+def _bookings_create(request):
     room_id = request.data.get("room_id")
     date_start_raw = request.data.get("date_start")
     date_end_raw = request.data.get("date_end")
@@ -119,11 +99,10 @@ def bookings_create(request):
     except ValueError:
         return _error("room is not available for selected dates", status.HTTP_400_BAD_REQUEST)
 
-    return Response({"booking_id": booking_id}, status=status.HTTP_200_OK)
+    return Response({"booking_id": booking_id}, status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET"])
-def bookings_list(request):
+def _bookings_list(request):
     room_id = request.query_params.get("room_id")
 
     try:
@@ -147,16 +126,38 @@ def bookings_list(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
-def booking_delete(request):
-    booking_id = request.data.get("booking_id")
-    try:
-        booking_id_int = int(booking_id)
-    except (TypeError, ValueError):
-        return _error("booking_id must be an integer", status.HTTP_400_BAD_REQUEST)
+@api_view(["GET", "POST"])
+def rooms(request):
+    if request.method == "GET":
+        return _rooms_list(request)
 
+    if request.method == "POST":
+        return _rooms_create(request)
+
+
+@api_view(["DELETE"])
+def rooms_delete(request, room_id: int):
     try:
-        delete_booking(booking_id=booking_id_int)
+        delete_room(room_id=room_id)
+    except Http404:
+        return _error("room not found", status.HTTP_404_NOT_FOUND)
+
+    return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET", "POST"])
+def bookings(request):
+    if request.method == "GET":
+        return _bookings_list(request)
+
+    if request.method == "POST":
+        return _bookings_create(request)
+
+
+@api_view(["DELETE"])
+def bookings_delete(request, booking_id: int):
+    try:
+        delete_booking(booking_id=booking_id)
     except Http404:
         return _error("booking not found", status.HTTP_404_NOT_FOUND)
 
