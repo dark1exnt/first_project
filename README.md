@@ -15,17 +15,42 @@
 docker compose up -d
 poetry install
 poetry run python manage.py migrate
-poetry run python manage.py runserver 0.0.0.0:9000
+poetry run python manage.py runserver
 ```
 
 ## API methods
 
 ### Rooms
-`POST /rooms/create`
-`GET /rooms/list?sort_by=price|created_at&order=asc|desc`
-`POST /rooms/delete`
+**Create room**
+`POST /rooms/`
+JSON:
+```JSON
+{
+    "description": "some_text",
+    "price_per_night": 1000
+}
+```
+
+**List rooms**
+`GET /rooms/?sort_by=price|created_at&order=asc|desc`
+
+**Delete room**
+`DELETE /rooms/{room_id}`
 
 ### Bookings
-`POST /bookings/create`
-`GET /bookings/list?room_id=...`
-`POST /bookings/delete`
+**Create booking**
+`POST /bookings/`
+JSON:
+```JSON
+{
+    "room_id": 1,
+    "date_start: "2026-01-10",
+    "date_end": "2026-01-12"
+}
+```
+
+**List bookings**
+`GET /bookings/?room_id={room_id}`
+
+**Delete booking**
+`DELETE /bookings/{booking_id}`
