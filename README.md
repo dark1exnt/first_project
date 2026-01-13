@@ -16,6 +16,11 @@ cp .env.example .env
 docker compose up --build
 ```
 
+### Run tests
+```bash
+docker compose run --rm web pytest
+```
+
 ## API methods
 
 ### Rooms
