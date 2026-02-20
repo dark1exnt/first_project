@@ -126,6 +126,11 @@ def _bookings_list(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@api_view(["GET"])
+def health(request):
+    return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+
 @api_view(["GET", "POST"])
 def rooms(request):
     if request.method == "GET":

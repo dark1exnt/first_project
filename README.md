@@ -47,7 +47,7 @@ JSON:
 ```JSON
 {
     "room_id": 1,
-    "date_start: "2026-01-10",
+    "date_start": "2026-01-10",
     "date_end": "2026-01-12"
 }
 ```

@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:17.8
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -13,7 +13,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 5
+    restart: unless-stopped
 
   web:
     build: .
@@ -29,7 +30,16 @@ services:
         condition: service_healthy
     command: >
       sh -c "python manage.py migrate &&
-      python manage.py runserver 0.0.0.0:8000"
+      gunicorn config.wsgi:application
+      --bind 0.0.0.0:8000
+      --workers 2
+      --timeout 60"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 
 volumes:

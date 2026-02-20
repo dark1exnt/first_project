@@ -6,12 +6,13 @@ authors = [
     {name = "Trofim Ivanov",email = "ivanov.trofim.p@yandex.ru"}
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "django (>=6.0,<7.0)",
     "djangorestframework (>=3.16.1,<4.0.0)",
     "psycopg[binary] (>=3.3.2,<4.0.0)",
-    "python-dotenv (>=1.2.1,<2.0.0)"
+    "loguru (>=0.7.3,<0.8.0)",
+    "gunicorn (>=25.1.0,<26.0.0)"
 ]
 
 
