@@ -5,6 +5,7 @@ from datetime import date
 from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from booking.services.bookings import create_booking, delete_booking, list_bookings
@@ -28,7 +29,7 @@ def _parse_date(value: object, field_name: str) -> tuple[date | None, Response |
         )
 
 
-def _rooms_create(request):
+def _rooms_create(request: Request) -> Response:
     description = request.data.get("description")
     price_per_night = request.data.get("price_per_night")
 
@@ -47,7 +48,7 @@ def _rooms_create(request):
     return Response({"room_id": room_id}, status=status.HTTP_201_CREATED)
 
 
-def _rooms_list(request):
+def _rooms_list(request: Request) -> Response:
     sort_by = request.query_params.get("sort_by", "created_at")
     order = request.query_params.get("order", "desc")
 
@@ -71,7 +72,7 @@ def _rooms_list(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
-def _bookings_create(request):
+def _bookings_create(request: Request) -> Response:
     room_id = request.data.get("room_id")
     date_start_raw = request.data.get("date_start")
     date_end_raw = request.data.get("date_end")
@@ -84,10 +85,12 @@ def _bookings_create(request):
     date_start, err = _parse_date(date_start_raw, "date_start")
     if err:
         return err
+    assert date_start is not None
 
     date_end, err = _parse_date(date_end_raw, "date_end")
     if err:
         return err
+    assert date_end is not None
 
     if date_end <= date_start:
         return _error("date_end must be greater than date_start", status.HTTP_400_BAD_REQUEST)
@@ -102,7 +105,7 @@ def _bookings_create(request):
     return Response({"booking_id": booking_id}, status=status.HTTP_201_CREATED)
 
 
-def _bookings_list(request):
+def _bookings_list(request: Request) -> Response:
     room_id = request.query_params.get("room_id")
 
     try:
@@ -127,12 +130,12 @@ def _bookings_list(request):
 
 
 @api_view(["GET"])
-def health(request):
+def health(request: Request) -> Response:
     return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
 @api_view(["GET", "POST"])
-def rooms(request):
+def rooms(request: Request) -> Response:
     if request.method == "GET":
         return _rooms_list(request)
 
@@ -141,7 +144,7 @@ def rooms(request):
 
 
 @api_view(["DELETE"])
-def rooms_delete(request, room_id: int):
+def rooms_delete(request: Request, room_id: int) -> Response:
     try:
         delete_room(room_id=room_id)
     except Http404:
@@ -151,7 +154,7 @@ def rooms_delete(request, room_id: int):
 
 
 @api_view(["GET", "POST"])
-def bookings(request):
+def bookings(request: Request) -> Response:
     if request.method == "GET":
         return _bookings_list(request)
 
@@ -160,7 +163,7 @@ def bookings(request):
 
 
 @api_view(["DELETE"])
-def bookings_delete(request, booking_id: int):
+def bookings_delete(request: Request, booking_id: int) -> Response:
     try:
         delete_booking(booking_id=booking_id)
     except Http404:

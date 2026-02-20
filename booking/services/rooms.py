@@ -16,15 +16,9 @@ def create_room(*, description: str, price_per_night: int) -> int:
 
 
 def list_rooms(*, sort_by: SortBy = "created_at", order: Order = "desc") -> list[Room]:
-    if sort_by == "price":
-        field = "price_per_night"
-    else:
-        field = "created_at"
+    field = "price_per_night" if sort_by == "price" else "created_at"
 
-    if order == "asc":
-        ordering = field
-    else:
-        ordering = f"-{field}"
+    ordering = field if order == "asc" else f"-{field}"
 
     return list(Room.objects.all().order_by(ordering))
 
