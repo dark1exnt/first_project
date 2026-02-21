@@ -23,6 +23,11 @@ services:
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
+      APP_ENV: dev
+      LOG_LEVEL: INFO
+      LOG_TO_FILE: "1"
+    volumes:
+      - ./logs:/app/logs
     ports:
       - "8000:8000"
     depends_on:

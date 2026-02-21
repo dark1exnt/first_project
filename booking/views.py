@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 
 from django.http import Http404
+from logging_setup import setup_logging
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -11,8 +12,11 @@ from rest_framework.response import Response
 from booking.services.bookings import create_booking, delete_booking, list_bookings
 from booking.services.rooms import create_room, delete_room, list_rooms
 
+logger = setup_logging()
+
 
 def _error(message: str, http_status: int) -> Response:
+    logger.error("API error | status={status} | message={msg}", status=http_status, msg=message)
     return Response({"error": message}, status=http_status)
 
 
@@ -45,6 +49,14 @@ def _rooms_create(request: Request) -> Response:
         return _error("price_per_night must be > 0", status.HTTP_400_BAD_REQUEST)
 
     room_id = create_room(description=description.strip(), price_per_night=price_per_night_int)
+
+    logger.info(
+        "Комната создана | room_id={id} | description={description} | price_per_night={price}",
+        id=room_id,
+        description=description,
+        price=price_per_night,
+    )
+
     return Response({"room_id": room_id}, status=status.HTTP_201_CREATED)
 
 
@@ -69,6 +81,13 @@ def _rooms_list(request: Request) -> Response:
         }
         for r in rooms
     ]
+
+    logger.info(
+        "Получен список комнат | sort_by={sort_method} | order={order_method}",
+        sort_method=sort_by,
+        order_method=order,
+    )
+
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -102,6 +121,14 @@ def _bookings_create(request: Request) -> Response:
     except ValueError:
         return _error("room is not available for selected dates", status.HTTP_400_BAD_REQUEST)
 
+    logger.info(
+        "Бронь создана | booking_id={id} | room_id={r_id} | date_start={start} | date_end={end}",
+        id=booking_id,
+        r_id=room_id,
+        start=date_start,
+        end=date_end,
+    )
+
     return Response({"booking_id": booking_id}, status=status.HTTP_201_CREATED)
 
 
@@ -126,6 +153,12 @@ def _bookings_list(request: Request) -> Response:
         }
         for b in bookings
     ]
+
+    logger.info(
+        "Получен список брони | room_id={r_id}",
+        r_id=room_id,
+    )
+
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -136,6 +169,13 @@ def health(request: Request) -> Response:
 
 @api_view(["GET", "POST"])
 def rooms(request: Request) -> Response:
+    logger.info(
+        "Запрос получен | method={method} | path={path} | query_params{query_params}",
+        method=request.method,
+        path=request.path,
+        query_params=dict(request.GET),
+    )
+
     if request.method == "GET":
         return _rooms_list(request)
 
@@ -150,11 +190,20 @@ def rooms_delete(request: Request, room_id: int) -> Response:
     except Http404:
         return _error("room not found", status.HTTP_404_NOT_FOUND)
 
+    logger.info("Комната удалена | room_id={id}", id=room_id)
+
     return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
 @api_view(["GET", "POST"])
 def bookings(request: Request) -> Response:
+    logger.info(
+        "Запрос получен | method={method} | path={path} | query_params{query_params}",
+        method=request.method,
+        path=request.path,
+        query_params=dict(request.GET),
+    )
+
     if request.method == "GET":
         return _bookings_list(request)
 
@@ -168,5 +217,7 @@ def bookings_delete(request: Request, booking_id: int) -> Response:
         delete_booking(booking_id=booking_id)
     except Http404:
         return _error("booking not found", status.HTTP_404_NOT_FOUND)
+
+    logger.info("Бронь удалена | booking_id={id}", id=booking_id)
 
     return Response({"status": "ok"}, status=status.HTTP_200_OK)
