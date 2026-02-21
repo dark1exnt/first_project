@@ -12,22 +12,12 @@ def setup_logging():
     logger.remove()
 
     if env == "prod":
-        logger.add(
-            sys.stdout,
-            level=level,
-            serialize=True,
-            enqueue=True
-        )
+        logger.add(sys.stdout, level=level, serialize=True, enqueue=True)
     else:
         fmt = "<green>{time:HH:mm:ss}</green> | <level>{level}</level> | <cyan>{message}</cyan>"
         logger.add(sys.stdout, level=level, format=fmt)
 
     if log_to_file:
-        logger.add(
-            "logs/app.log",
-            rotation="10 MB",
-            retention="7 days",
-            compression="zip"
-        )
+        logger.add("logs/app.log", rotation="10 MB", retention="7 days", compression="zip")
 
     return logger
